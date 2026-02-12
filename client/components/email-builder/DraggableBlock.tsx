@@ -1,6 +1,6 @@
 import React from "react";
 import { useDrag, useDrop } from "react-dnd";
-import { Trash2 } from "lucide-react";
+import { Trash2, Copy } from "lucide-react";
 import { ContentBlock } from "./types";
 import { BlockRenderer } from "./BlockRenderer";
 import { BlockActions } from "./BlockActions";
@@ -43,6 +43,7 @@ export const DraggableBlock: React.FC<DraggableBlockProps> = ({
   isPartOfInlineGroup,
 }) => {
   const [isHovering, setIsHovering] = React.useState(false);
+  const [isBlockSelected, setIsBlockSelected] = React.useState(false);
   const [{ isDragging }, drag] = useDrag(
     () => ({
       type: "canvas-block",
@@ -84,6 +85,12 @@ export const DraggableBlock: React.FC<DraggableBlockProps> = ({
       )}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (isPartOfInlineGroup) {
+          setIsBlockSelected(true);
+        }
+      }}
     >
       <BlockRenderer
         block={block}
@@ -100,37 +107,58 @@ export const DraggableBlock: React.FC<DraggableBlockProps> = ({
         blockIndex={index}
       />
 
-      {(isHovering || isSelected) && (
+      {!isPartOfInlineGroup && (isSelected || isHovering) && (
         <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 z-[100] transition-all">
-          {isPartOfInlineGroup ? (
-            // Show only delete button for blocks in inline group
-            <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-full px-3 py-1.5 shadow-lg">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 hover:bg-red-50 rounded-full"
-                onMouseDown={(e) => e.stopPropagation()}
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(block.id);
-                }}
-                type="button"
-                title="Delete block"
-              >
-                <Trash2 className="w-4 h-4 text-red-600" />
-              </Button>
-            </div>
-          ) : (
-            <BlockActions
-              block={block}
-              blockIndex={index}
-              totalBlocks={totalBlocks}
-              onAddBlock={onAddBlock}
-              onDuplicate={onDuplicate}
-              onDelete={() => onDelete(block.id)}
-            />
-          )}
+          <BlockActions
+            block={block}
+            blockIndex={index}
+            totalBlocks={totalBlocks}
+            onAddBlock={onAddBlock}
+            onDuplicate={onDuplicate}
+            onDelete={() => onDelete(block.id)}
+          />
+        </div>
+      )}
+
+      {isPartOfInlineGroup && isBlockSelected && (
+        <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 z-[100] transition-all">
+          <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-full px-3 py-1.5 shadow-lg">
+            {/* Copy Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 hover:bg-gray-100 rounded-full"
+              onMouseDown={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDuplicate(block, index + 1);
+                setIsBlockSelected(false);
+              }}
+              type="button"
+              title="Duplicate block"
+            >
+              <Copy className="w-4 h-4 text-gray-700" />
+            </Button>
+
+            {/* Delete Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 hover:bg-red-50 rounded-full"
+              onMouseDown={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(block.id);
+                setIsBlockSelected(false);
+              }}
+              type="button"
+              title="Delete block"
+            >
+              <Trash2 className="w-4 h-4 text-red-600" />
+            </Button>
+          </div>
         </div>
       )}
     </div>

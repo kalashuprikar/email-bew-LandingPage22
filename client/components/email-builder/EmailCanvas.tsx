@@ -183,7 +183,7 @@ export const EmailCanvas: React.FC<EmailCanvasProps> = ({
                         "flex w-full transition-all rounded-lg border-2 border-solid border-valasys-orange"
                       )}>
                         {inlineBlocks.map((inlineBlock, i) => (
-                          <div key={inlineBlock.id} className="flex-1">
+                          <div key={inlineBlock.id} className="flex-1" onClick={(e) => e.stopPropagation()}>
                             <DraggableBlock
                               block={inlineBlock}
                               index={index + i}
