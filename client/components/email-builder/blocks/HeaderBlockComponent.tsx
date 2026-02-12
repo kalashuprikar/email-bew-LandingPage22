@@ -38,7 +38,7 @@ export const HeaderBlockComponent: React.FC<HeaderBlockComponentProps> = ({
   return (
     <div
       className={`transition-all ${
-        isSelected ? "ring-2 ring-valasys-orange" : ""
+        isSelected ? "border-2 border-dashed border-valasys-orange" : ""
       }`}
       style={{
         backgroundColor: block.backgroundColor,
