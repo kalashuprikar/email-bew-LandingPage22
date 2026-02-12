@@ -464,6 +464,9 @@ export interface FeaturesBlock {
     icon: string;
     title: string;
     description: string;
+    icons?: { id: string; content: string }[];
+    titles?: { id: string; content: string }[];
+    descriptions?: { id: string; content: string }[];
     fontSize: number;
     titleFontSize: number;
     textColor: string;

@@ -669,6 +669,14 @@ export function createFeaturesBlock() {
         icon: "❤️",
         title: "Feature One",
         description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        icons: [{ id: generateId(), content: "❤️" }],
+        titles: [{ id: generateId(), content: "Feature One" }],
+        descriptions: [
+          {
+            id: generateId(),
+            content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+          },
+        ],
         fontSize: 14,
         titleFontSize: 16,
         textColor: "#000000",
@@ -681,6 +689,14 @@ export function createFeaturesBlock() {
         icon: "🎁",
         title: "Feature Two",
         description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        icons: [{ id: generateId(), content: "🎁" }],
+        titles: [{ id: generateId(), content: "Feature Two" }],
+        descriptions: [
+          {
+            id: generateId(),
+            content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+          },
+        ],
         fontSize: 14,
         titleFontSize: 16,
         textColor: "#000000",
@@ -693,6 +709,14 @@ export function createFeaturesBlock() {
         icon: "ℹ️",
         title: "Feature Three",
         description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        icons: [{ id: generateId(), content: "ℹ️" }],
+        titles: [{ id: generateId(), content: "Feature Three" }],
+        descriptions: [
+          {
+            id: generateId(),
+            content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+          },
+        ],
         fontSize: 14,
         titleFontSize: 16,
         textColor: "#000000",
@@ -1048,11 +1072,42 @@ export function renderBlockToHTML(block: ContentBlock): string {
       const width = `${featuresBlock.width}${featuresBlock.widthUnit}`;
       const featuresHtml = featuresBlock.features
         ?.map((feature: any) => {
+          const icons =
+            feature.icons ||
+            (feature.icon ? [{ id: "icon-0", content: feature.icon }] : []);
+          const titles =
+            feature.titles ||
+            (feature.title ? [{ id: "title-0", content: feature.title }] : []);
+          const descriptions =
+            feature.descriptions ||
+            (feature.description
+              ? [{ id: "desc-0", content: feature.description }]
+              : []);
+
+          const iconsHtml = icons
+            .map(
+              (i: any) =>
+                `<div style="font-size: 32px; margin-bottom: 12px; line-height: 1;">${i.content}</div>`,
+            )
+            .join("");
+          const titlesHtml = titles
+            .map(
+              (t: any) =>
+                `<h3 style="margin: 0 0 8px 0; font-size: ${feature.titleFontSize}px; font-weight: bold; color: ${feature.textColor};">${t.content}</h3>`,
+            )
+            .join("");
+          const descriptionsHtml = descriptions
+            .map(
+              (d: any) =>
+                `<p style="margin: 0; font-size: ${feature.fontSize}px; color: ${feature.textColor}; line-height: 1.5;">${d.content}</p>`,
+            )
+            .join("");
+
           return `<div style="flex: 1; min-width: 0; text-align: center; padding: 0 10px; box-sizing: border-box;">
               <div style="background-color: ${feature.backgroundColor}; border-radius: ${feature.borderRadius}px; padding: ${feature.padding}px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); height: 100%;">
-                <div style="font-size: 32px; margin-bottom: 12px; line-height: 1;">${feature.icon}</div>
-                <h3 style="margin: 0 0 8px 0; font-size: ${feature.titleFontSize}px; font-weight: bold; color: ${feature.textColor};">${feature.title}</h3>
-                <p style="margin: 0; font-size: ${feature.fontSize}px; color: ${feature.textColor}; line-height: 1.5;">${feature.description}</p>
+                ${iconsHtml}
+                ${titlesHtml}
+                ${descriptionsHtml}
               </div>
             </div>`;
         })
