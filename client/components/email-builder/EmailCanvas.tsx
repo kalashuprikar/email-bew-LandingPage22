@@ -122,6 +122,7 @@ export const EmailCanvas: React.FC<EmailCanvasProps> = ({
             "bg-white border border-t-0 border-gray-200 rounded-b-lg shadow-sm min-h-96 transition-all",
             isOver && "ring-2 ring-valasys-orange bg-orange-50",
           )}
+          onClick={() => setSelectedInlineGroup(null)}
         >
           {template.blocks.length === 0 ? (
             <div className="text-center py-16 text-gray-400">
@@ -173,11 +174,14 @@ export const EmailCanvas: React.FC<EmailCanvasProps> = ({
                       className="relative"
                       onMouseEnter={() => setHoveredInlineGroup(groupId)}
                       onMouseLeave={() => setHoveredInlineGroup(null)}
-                      onClick={() => setSelectedInlineGroup(groupId)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedInlineGroup(groupId);
+                      }}
                     >
                       <div className={cn(
                         "flex w-full transition-all rounded-lg",
-                        (isGroupSelected || isGroupHovered) && "border-2 border-dashed border-valasys-orange"
+                        isGroupHovered && !isGroupSelected && "border-2 border-dashed border-valasys-orange"
                       )}>
                         {inlineBlocks.map((inlineBlock, i) => (
                           <div key={inlineBlock.id} className="flex-1">
@@ -210,7 +214,7 @@ export const EmailCanvas: React.FC<EmailCanvasProps> = ({
                       </div>
 
                       {/* Group Actions */}
-                      {(isGroupSelected || isGroupHovered) && (
+                      {isGroupSelected && (
                         <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 z-[100] transition-all">
                           <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-full px-3 py-1.5 shadow-lg">
                             {/* Duplicate Group */}
