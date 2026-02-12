@@ -76,8 +76,14 @@ export const DraggableBlock: React.FC<DraggableBlockProps> = ({
 
   // Sync local state with parent selection
   React.useEffect(() => {
-    setIsBlockSelected(isSelected);
-  }, [isSelected]);
+    // Always keep the block selected if it was being edited
+    if (isEditing) {
+      setIsBlockSelected(true);
+      onBlockSelect(block.id); // Ensure parent knows block is selected during edit
+    } else {
+      setIsBlockSelected(isSelected);
+    }
+  }, [isSelected, isEditing, block.id, onBlockSelect]);
 
   return (
     <div
