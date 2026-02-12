@@ -345,6 +345,7 @@ export const FeaturesBlockComponent: React.FC<FeaturesBlockComponentProps> = ({
                             value={desc.content}
                             onChange={(e) => handleUpdateField(feature.id, "descriptions", desc.id, e.target.value)}
                             onBlur={() => setEditMode(null)}
+                            onClick={(e) => e.stopPropagation()}
                             autoFocus
                             className="w-full text-center text-sm border rounded p-1"
                             style={{ color: feature.textColor }}

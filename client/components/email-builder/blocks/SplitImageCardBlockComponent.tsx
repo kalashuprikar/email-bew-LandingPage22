@@ -601,6 +601,7 @@ export const SplitImageCardBlockComponent: React.FC<
                                 setTimeout(() => setEditMode(null), 200)
                               }
                               onMouseDown={(e) => e.stopPropagation()}
+                              onClick={(e) => e.stopPropagation()}
                               autoFocus
                               className="font-bold text-lg focus:outline-none"
                               style={{ border: "2px solid rgb(255, 106, 0)" }}
@@ -669,6 +670,7 @@ export const SplitImageCardBlockComponent: React.FC<
                                 setTimeout(() => setEditMode(null), 200)
                               }
                               onMouseDown={(e) => e.stopPropagation()}
+                              onClick={(e) => e.stopPropagation()}
                               autoFocus
                               className="w-full resize-none"
                               style={{
@@ -752,6 +754,7 @@ export const SplitImageCardBlockComponent: React.FC<
                                 setTimeout(() => setEditMode(null), 200)
                               }
                               onMouseDown={(e) => e.stopPropagation()}
+                              onClick={(e) => e.stopPropagation()}
                               autoFocus
                               className="focus:outline-none"
                               style={{ border: "2px solid rgb(255, 106, 0)" }}
@@ -777,6 +780,7 @@ export const SplitImageCardBlockComponent: React.FC<
                                 setTimeout(() => setEditMode(null), 200)
                               }
                               onMouseDown={(e) => e.stopPropagation()}
+                              onClick={(e) => e.stopPropagation()}
                               autoFocus
                               placeholder="https://example.com"
                               className="text-sm focus:outline-none"

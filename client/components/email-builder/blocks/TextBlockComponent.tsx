@@ -73,6 +73,7 @@ export const TextBlockComponent: React.FC<TextBlockComponentProps> = ({
           value={block.content}
           onChange={(e) => onContentChange(e.target.value)}
           onBlur={() => onEditingChange?.(null)}
+          onClick={(e) => e.stopPropagation()}
           autoFocus
           className="w-full rounded px-2 py-1 font-serif outline-none"
           style={{

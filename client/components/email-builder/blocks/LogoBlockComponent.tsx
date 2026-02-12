@@ -12,13 +12,20 @@ export const LogoBlockComponent: React.FC<LogoBlockComponentProps> = ({
   isSelected,
   onSrcChange,
 }) => {
+  const isInlineDisplay = (block as any).displayMode === "inline";
+
   return (
     <div
-      className={`relative p-4 transition-all ${
+      className={`relative transition-all ${
         isSelected ? "ring-2 ring-valasys-orange" : ""
       }`}
+      style={{
+        padding: `${(block as any).padding || 16}px`,
+        display: "block",
+        width: isInlineDisplay ? "auto" : "100%",
+      }}
     >
-      <div style={{ textAlign: block.alignment as any }}>
+      <div style={{ textAlign: "center" }}>
         {block.src ? (
           <img
             src={block.src}

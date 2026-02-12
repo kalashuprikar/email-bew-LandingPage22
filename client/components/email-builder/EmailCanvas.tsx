@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { useDrop } from "react-dnd";
-import { Mail } from "lucide-react";
+import { Mail, Copy, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { EmailTemplate, ContentBlock } from "./types";
 import { DraggableBlock } from "./DraggableBlock";
 
@@ -40,6 +41,9 @@ export const EmailCanvas: React.FC<EmailCanvasProps> = ({
   onDuplicateBlock,
   onDeleteBlock,
 }) => {
+  const [hoveredInlineGroup, setHoveredInlineGroup] = useState<string | null>(null);
+  const [selectedInlineGroup, setSelectedInlineGroup] = useState<string | null>(null);
+
   const [{ isOver }, drop] = useDrop(() => ({
     accept: ["block", "template"],
     drop: (item: any) => {
@@ -118,6 +122,12 @@ export const EmailCanvas: React.FC<EmailCanvasProps> = ({
             "bg-white border border-t-0 border-gray-200 rounded-b-lg shadow-sm min-h-96 transition-all",
             isOver && "ring-2 ring-valasys-orange bg-orange-50",
           )}
+          onClick={(e) => {
+            // Only deselect inline group if clicking on empty canvas area
+            if (e.target === e.currentTarget) {
+              setSelectedInlineGroup(null);
+            }
+          }}
         >
           {template.blocks.length === 0 ? (
             <div className="text-center py-16 text-gray-400">
@@ -135,29 +145,161 @@ export const EmailCanvas: React.FC<EmailCanvasProps> = ({
             </div>
           ) : (
             <div className="space-y-0">
-              {template.blocks.map((block, index) => (
-                <DraggableBlock
-                  key={block.id}
-                  block={block}
-                  index={index}
-                  totalBlocks={template.blocks.length}
-                  isSelected={selectedBlockId === block.id}
-                  isEditing={editingBlockId === block.id}
-                  selectedFooterElement={selectedFooterElement}
-                  onBlockUpdate={onBlockUpdate}
-                  onBlockSelect={onBlockSelect}
-                  onEditingBlockChange={onEditingBlockChange}
-                  onFooterElementSelect={onFooterElementSelect}
-                  onMoveBlock={onMoveBlock}
-                  onAddBlock={(newBlock, position) => {
-                    onAddBlock(newBlock, position);
-                  }}
-                  onDuplicate={(blockToDuplicate, position) => {
-                    onDuplicateBlock?.(blockToDuplicate, position);
-                  }}
-                  onDelete={(blockId) => onDeleteBlock?.(blockId)}
-                />
-              ))}
+              {template.blocks.map((block, index) => {
+                const isInlineDisplay = (block as any).displayMode === "inline";
+                const nextBlock = template.blocks[index + 1];
+                const nextIsInline = nextBlock && (nextBlock as any).displayMode === "inline";
+                const prevBlock = template.blocks[index - 1];
+                const prevIsInline = prevBlock && (prevBlock as any).displayMode === "inline";
+
+                // Skip if this block is inline and we're not at the start of an inline sequence
+                if (isInlineDisplay && prevIsInline) {
+                  return null;
+                }
+
+                // If this is the start of an inline sequence, create a wrapper
+                if (isInlineDisplay) {
+                  const inlineBlocks = [block];
+                  let currentIndex = index + 1;
+                  while (
+                    currentIndex < template.blocks.length &&
+                    (template.blocks[currentIndex] as any).displayMode === "inline"
+                  ) {
+                    inlineBlocks.push(template.blocks[currentIndex]);
+                    currentIndex++;
+                  }
+
+                  const groupId = `inline-group-${block.id}`;
+                  const isGroupSelected = selectedInlineGroup === groupId;
+                  const isGroupHovered = hoveredInlineGroup === groupId;
+
+                  return (
+                    <div
+                      key={groupId}
+                      className="relative"
+                      onMouseEnter={() => setHoveredInlineGroup(groupId)}
+                      onMouseLeave={() => setHoveredInlineGroup(null)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedInlineGroup(groupId);
+                      }}
+                    >
+                      <div className={cn(
+                        "w-full transition-all rounded-lg",
+                        isGroupHovered && !isGroupSelected ? "border-2 border-dashed border-valasys-orange" : "border-2 border-solid border-valasys-orange"
+                      )}
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: "0",
+                      }}>
+                        {inlineBlocks.map((inlineBlock, i) => (
+                          <div key={inlineBlock.id} className="w-full" onClick={(e) => e.stopPropagation()}>
+                            <DraggableBlock
+                              block={inlineBlock}
+                              index={index + i}
+                              totalBlocks={template.blocks.length}
+                              isSelected={selectedBlockId === inlineBlock.id}
+                              isEditing={editingBlockId === inlineBlock.id}
+                              selectedFooterElement={selectedFooterElement}
+                              onBlockUpdate={onBlockUpdate}
+                              onBlockSelect={(id) => {
+                                onBlockSelect(id);
+                                setSelectedInlineGroup(null);
+                              }}
+                              onEditingBlockChange={onEditingBlockChange}
+                              onFooterElementSelect={onFooterElementSelect}
+                              onMoveBlock={onMoveBlock}
+                              onAddBlock={(newBlock, position) => {
+                                onAddBlock(newBlock, position);
+                              }}
+                              onDuplicate={(blockToDuplicate, position) => {
+                                onDuplicateBlock?.(blockToDuplicate, position);
+                              }}
+                              onDelete={(blockId) => onDeleteBlock?.(blockId)}
+                              isPartOfInlineGroup={true}
+                            />
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Group Actions */}
+                      {isGroupSelected && (
+                        <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 z-[100] transition-all">
+                          <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-full px-3 py-1.5 shadow-lg">
+                            {/* Duplicate Group */}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 hover:bg-gray-100 rounded-full"
+                              onMouseDown={(e) => e.stopPropagation()}
+                              onPointerDown={(e) => e.stopPropagation()}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // Duplicate all blocks in the group after the last block
+                                const lastInlineBlockIndex = index + inlineBlocks.length - 1;
+                                inlineBlocks.forEach((block, idx) => {
+                                  onDuplicateBlock?.(block, lastInlineBlockIndex + 1 + idx);
+                                });
+                              }}
+                              type="button"
+                              title="Duplicate section"
+                            >
+                              <Copy className="w-4 h-4 text-gray-700" />
+                            </Button>
+
+                            {/* Delete Group */}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 hover:bg-red-50 rounded-full"
+                              onMouseDown={(e) => e.stopPropagation()}
+                              onPointerDown={(e) => e.stopPropagation()}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // Delete all blocks in the group
+                                inlineBlocks.forEach((block) => {
+                                  onDeleteBlock?.(block.id);
+                                });
+                                setSelectedInlineGroup(null);
+                              }}
+                              type="button"
+                              title="Delete section"
+                            >
+                              <Trash2 className="w-4 h-4 text-red-600" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                return (
+                  <DraggableBlock
+                    key={block.id}
+                    block={block}
+                    index={index}
+                    totalBlocks={template.blocks.length}
+                    isSelected={selectedBlockId === block.id}
+                    isEditing={editingBlockId === block.id}
+                    selectedFooterElement={selectedFooterElement}
+                    onBlockUpdate={onBlockUpdate}
+                    onBlockSelect={onBlockSelect}
+                    onEditingBlockChange={onEditingBlockChange}
+                    onFooterElementSelect={onFooterElementSelect}
+                    onMoveBlock={onMoveBlock}
+                    onAddBlock={(newBlock, position) => {
+                      onAddBlock(newBlock, position);
+                    }}
+                    onDuplicate={(blockToDuplicate, position) => {
+                      onDuplicateBlock?.(blockToDuplicate, position);
+                    }}
+                    onDelete={(blockId) => onDeleteBlock?.(blockId)}
+                  />
+                );
+              })}
             </div>
           )}
         </div>

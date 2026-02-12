@@ -33,6 +33,7 @@ export const FooterBlockComponent: React.FC<FooterBlockComponentProps> = ({
           value={block.content}
           onChange={(e) => onContentChange(e.target.value)}
           onBlur={() => setIsEditing(false)}
+          onClick={(e) => e.stopPropagation()}
           autoFocus
           className="w-full border border-valasys-orange rounded px-2 py-1"
         />

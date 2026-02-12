@@ -10,6 +10,52 @@ interface NavigationBlockComponentProps {
 export const NavigationBlockComponent: React.FC<
   NavigationBlockComponentProps
 > = ({ block, isSelected }) => {
+  const isInlineDisplay = (block as any).displayMode === "inline";
+
+  // Inline display - render as horizontal links with dark background
+  if (isInlineDisplay) {
+    const justifyContent =
+      block.alignment === "left" ? "flex-start" :
+      block.alignment === "right" ? "flex-end" :
+      "center";
+
+    return (
+      <div
+        className={`relative transition-all ${
+          isSelected ? "ring-2 ring-valasys-orange rounded-lg" : ""
+        }`}
+        style={{
+          padding: `${block.padding}px`,
+          margin: `${block.margin}px`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: justifyContent,
+          gap: "20px",
+          width: "100%",
+          backgroundColor: block.backgroundColor,
+          borderRadius: "4px",
+        }}
+      >
+        {block.items.map((item) => (
+          <a
+            key={`${item.label}-${item.link}`}
+            href={item.link}
+            style={{
+              color: block.textColor,
+              textDecoration: "none",
+              fontSize: "14px",
+              fontWeight: "500",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {item.label}
+          </a>
+        ))}
+      </div>
+    );
+  }
+
+  // Block display - render with container styling
   return (
     <div
       className={`relative p-4 transition-all ${

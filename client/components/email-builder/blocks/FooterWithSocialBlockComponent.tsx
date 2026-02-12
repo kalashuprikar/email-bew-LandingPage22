@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+import React from "react";
+import { Copy, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { FooterWithSocialBlock } from "../types";
 import { SocialBlockComponent } from "./SocialBlockComponent";
 
@@ -9,6 +12,10 @@ interface FooterWithSocialBlockComponentProps {
   onContentChange: (field: string, value: any) => void;
   onSocialUpdate: (social: any) => void;
   onElementSelect?: (element: string) => void;
+  onBlockSelect?: (blockId: string) => void;
+  onDuplicate?: (block: FooterWithSocialBlock, position: number) => void;
+  onDelete?: (blockId: string) => void;
+  blockIndex?: number;
 }
 
 export const FooterWithSocialBlockComponent: React.FC<
@@ -20,7 +27,14 @@ export const FooterWithSocialBlockComponent: React.FC<
   onContentChange,
   onSocialUpdate,
   onElementSelect,
+  onBlockSelect,
+  onDuplicate,
+  onDelete,
+  blockIndex = 0,
 }) => {
+  const [hoveredSection, setHoveredSection] = React.useState<string | null>(null);
+  const [selectedSection, setSelectedSection] = React.useState<string | null>(null);
+
   const handleFieldChange = (
     field: keyof typeof block,
     subField: string,
@@ -32,6 +46,15 @@ export const FooterWithSocialBlockComponent: React.FC<
 
   const handleSocialChange = (socialData: any) => {
     onSocialUpdate(socialData);
+  };
+
+  const handleElementSelect = (element: string) => {
+    // Ensure block is selected when selecting footer element
+    if (onBlockSelect) {
+      onBlockSelect(block.id);
+    }
+    onElementSelect?.(element);
+    setSelectedSection(element);
   };
 
   return (
@@ -46,7 +69,10 @@ export const FooterWithSocialBlockComponent: React.FC<
       <div className="space-y-4">
         {/* Social Media Section */}
         <div
-          onClick={() => onElementSelect?.("social")}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleElementSelect("social");
+          }}
           className={`py-4 px-2 cursor-pointer hover:bg-gray-50 rounded transition-all ${
             selectedElement === "social" ? "ring-2 ring-valasys-orange" : ""
           }`}
@@ -121,7 +147,10 @@ export const FooterWithSocialBlockComponent: React.FC<
               ? "ring-2 ring-valasys-orange"
               : ""
           }`}
-          onClick={() => onElementSelect?.("enterpriseName")}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleElementSelect("enterpriseName");
+          }}
         >
           {selectedElement === "enterpriseName" ? (
             <input
@@ -130,7 +159,6 @@ export const FooterWithSocialBlockComponent: React.FC<
               onChange={(e) =>
                 handleFieldChange("enterpriseName", "content", e.target.value)
               }
-              onBlur={() => onElementSelect?.(null)}
               autoFocus
               className="w-full border border-valasys-orange rounded px-2 py-1 text-center"
               style={{
@@ -161,7 +189,10 @@ export const FooterWithSocialBlockComponent: React.FC<
           className={`cursor-pointer hover:bg-gray-50 rounded p-2 transition-all ${
             selectedElement === "address" ? "ring-2 ring-valasys-orange" : ""
           }`}
-          onClick={() => onElementSelect?.("address")}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleElementSelect("address");
+          }}
         >
           {selectedElement === "address" ? (
             <textarea
@@ -169,7 +200,6 @@ export const FooterWithSocialBlockComponent: React.FC<
               onChange={(e) =>
                 handleFieldChange("address", "content", e.target.value)
               }
-              onBlur={() => onElementSelect?.(null)}
               autoFocus
               className="w-full border border-valasys-orange rounded px-2 py-1 text-center"
               style={{
@@ -204,7 +234,10 @@ export const FooterWithSocialBlockComponent: React.FC<
               ? "ring-2 ring-valasys-orange"
               : ""
           }`}
-          onClick={() => onElementSelect?.("subscriptionText")}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleElementSelect("subscriptionText");
+          }}
         >
           {selectedElement === "subscriptionText" ? (
             <textarea
@@ -212,7 +245,6 @@ export const FooterWithSocialBlockComponent: React.FC<
               onChange={(e) =>
                 handleFieldChange("subscriptionText", "content", e.target.value)
               }
-              onBlur={() => onElementSelect?.(null)}
               autoFocus
               className="w-full border border-valasys-orange rounded px-2 py-1 text-center"
               style={{
@@ -246,7 +278,10 @@ export const FooterWithSocialBlockComponent: React.FC<
               ? "ring-2 ring-valasys-orange"
               : ""
           }`}
-          onClick={() => onElementSelect?.("unsubscribeLink")}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleElementSelect("unsubscribeLink");
+          }}
         >
           {selectedElement === "unsubscribeLink" ? (
             <div className="space-y-2">

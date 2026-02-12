@@ -454,6 +454,8 @@ export const TwoColumnCardBlockComponent: React.FC<
                             onBlur={() =>
                               handleSaveEditTitle(card.id, title.id)
                             }
+                            onClick={(e) => e.stopPropagation()}
+                            onMouseDown={(e) => e.stopPropagation()}
                             onKeyPress={(e) => {
                               if (e.key === "Enter") {
                                 handleSaveEditTitle(card.id, title.id);
@@ -529,6 +531,8 @@ export const TwoColumnCardBlockComponent: React.FC<
                             onBlur={() =>
                               handleSaveEditDescription(card.id, desc.id)
                             }
+                            onClick={(e) => e.stopPropagation()}
+                            onMouseDown={(e) => e.stopPropagation()}
                             onKeyPress={(e) => {
                               if (e.key === "Escape") {
                                 setEditingFieldId(null);

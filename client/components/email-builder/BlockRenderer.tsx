@@ -52,8 +52,12 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({
   onDelete,
   blockIndex = 0,
 }) => {
-  const handleClick = () => {
-    onBlockSelect?.(block.id);
+  const handleClick = (e: React.MouseEvent) => {
+    // Don't stop propagation - let inner elements handle clicks
+    // This allows footer sub-elements like "Enterprise Name" to be clicked
+    if (e.target === e.currentTarget) {
+      onBlockSelect?.(block.id);
+    }
   };
 
   switch (block.type) {
@@ -206,6 +210,7 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({
             }
             onSocialUpdate={(social) => onBlockUpdate({ ...block, social })}
             onElementSelect={onFooterElementSelect}
+            onBlockSelect={onBlockSelect}
           />
         </div>
       );

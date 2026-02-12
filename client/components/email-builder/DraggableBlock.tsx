@@ -1,8 +1,10 @@
 import React from "react";
 import { useDrag, useDrop } from "react-dnd";
+import { Trash2, Copy } from "lucide-react";
 import { ContentBlock } from "./types";
 import { BlockRenderer } from "./BlockRenderer";
 import { BlockActions } from "./BlockActions";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface DraggableBlockProps {
@@ -20,6 +22,7 @@ interface DraggableBlockProps {
   onAddBlock: (block: ContentBlock, position: number) => void;
   onDuplicate: (block: ContentBlock, position: number) => void;
   onDelete: (blockId: string) => void;
+  isPartOfInlineGroup?: boolean;
 }
 
 export const DraggableBlock: React.FC<DraggableBlockProps> = ({
@@ -37,8 +40,10 @@ export const DraggableBlock: React.FC<DraggableBlockProps> = ({
   onAddBlock,
   onDuplicate,
   onDelete,
+  isPartOfInlineGroup,
 }) => {
   const [isHovering, setIsHovering] = React.useState(false);
+  const [isBlockSelected, setIsBlockSelected] = React.useState(false);
   const [{ isDragging }, drag] = useDrag(
     () => ({
       type: "canvas-block",
@@ -69,16 +74,37 @@ export const DraggableBlock: React.FC<DraggableBlockProps> = ({
   const ref = React.useRef<HTMLDivElement>(null);
   drag(drop(ref));
 
+  // Sync local state with parent selection
+  React.useEffect(() => {
+    // Always keep the block selected if it was being edited
+    if (isEditing) {
+      setIsBlockSelected(true);
+      onBlockSelect(block.id); // Ensure parent knows block is selected during edit
+    } else {
+      setIsBlockSelected(isSelected);
+    }
+  }, [isSelected, isEditing, block.id, onBlockSelect]);
+
   return (
     <div
       ref={ref}
       className={cn(
-        "group relative cursor-move",
-        isDragging && "opacity-50 scale-95 transition-all",
+        "group relative cursor-move transition-all",
+        isDragging && "opacity-50 scale-95",
         isOver && "ring-2 ring-valasys-orange rounded-lg",
+        !isPartOfInlineGroup && isHovering && !isBlockSelected && "border-2 border-dashed border-valasys-orange rounded-lg",
+        !isPartOfInlineGroup && isBlockSelected && "border-2 border-solid border-valasys-orange rounded-lg",
       )}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
+      onClick={(e) => {
+        // Don't change selection if we're currently editing
+        if (!isEditing) {
+          // Always select the block when clicked
+          onBlockSelect(block.id);
+          setIsBlockSelected(true);
+        }
+      }}
     >
       <BlockRenderer
         block={block}
@@ -95,16 +121,87 @@ export const DraggableBlock: React.FC<DraggableBlockProps> = ({
         blockIndex={index}
       />
 
-      {(isSelected || isHovering) && (
+      {!isPartOfInlineGroup && isBlockSelected && (
         <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 z-[100] transition-all">
-          <BlockActions
-            block={block}
-            blockIndex={index}
-            totalBlocks={totalBlocks}
-            onAddBlock={onAddBlock}
-            onDuplicate={onDuplicate}
-            onDelete={() => onDelete(block.id)}
-          />
+          <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-full px-3 py-1.5 shadow-lg">
+            {/* Copy Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 hover:bg-gray-100 rounded-full"
+              onMouseDown={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDuplicate(block, index + 1);
+                setIsBlockSelected(false);
+              }}
+              type="button"
+              title="Duplicate block"
+            >
+              <Copy className="w-4 h-4 text-gray-700" />
+            </Button>
+
+            {/* Delete Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 hover:bg-red-50 rounded-full"
+              onMouseDown={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(block.id);
+                setIsBlockSelected(false);
+              }}
+              type="button"
+              title="Delete block"
+            >
+              <Trash2 className="w-4 h-4 text-red-600" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {isPartOfInlineGroup && isBlockSelected && (
+        <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 z-[101] transition-all">
+          <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-full px-3 py-1.5 shadow-lg">
+            {/* Copy Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 hover:bg-gray-100 rounded-full"
+              onMouseDown={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDuplicate(block, index + 1);
+                setIsBlockSelected(false);
+              }}
+              type="button"
+              title="Duplicate block"
+            >
+              <Copy className="w-4 h-4 text-gray-700" />
+            </Button>
+
+            {/* Delete Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 hover:bg-red-50 rounded-full"
+              onMouseDown={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(block.id);
+                setIsBlockSelected(false);
+              }}
+              type="button"
+              title="Delete block"
+            >
+              <Trash2 className="w-4 h-4 text-red-600" />
+            </Button>
+          </div>
         </div>
       )}
     </div>

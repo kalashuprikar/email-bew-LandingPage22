@@ -620,6 +620,7 @@ export const CenteredImageCardBlockComponent: React.FC<
                             setTimeout(() => setEditMode(null), 200)
                           }
                           onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
                           autoFocus
                           className="text-center font-bold text-lg focus:outline-none"
                           style={{ border: "2px solid rgb(255, 106, 0)" }}
@@ -688,6 +689,7 @@ export const CenteredImageCardBlockComponent: React.FC<
                             setTimeout(() => setEditMode(null), 200)
                           }
                           onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
                           autoFocus
                           className="w-full resize-none"
                           style={{
@@ -766,6 +768,7 @@ export const CenteredImageCardBlockComponent: React.FC<
                             setTimeout(() => setEditMode(null), 200)
                           }
                           onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
                           autoFocus
                           className="text-center focus:outline-none"
                           style={{ border: "2px solid rgb(255, 106, 0)" }}
@@ -787,6 +790,7 @@ export const CenteredImageCardBlockComponent: React.FC<
                             setTimeout(() => setEditMode(null), 200)
                           }
                           onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
                           autoFocus
                           placeholder="https://example.com"
                           className="text-sm text-center focus:outline-none"
