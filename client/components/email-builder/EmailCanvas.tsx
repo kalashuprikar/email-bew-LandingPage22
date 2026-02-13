@@ -144,7 +144,7 @@ export const EmailCanvas: React.FC<EmailCanvasProps> = ({
               </p>
             </div>
           ) : (
-            <div className="space-y-0">
+            <div className="w-full flex flex-col">
               {template.blocks.map((block, index) => {
                 const isInlineDisplay = (block as any).displayMode === "inline";
                 const nextBlock = template.blocks[index + 1];
@@ -169,6 +169,17 @@ export const EmailCanvas: React.FC<EmailCanvasProps> = ({
                     currentIndex++;
                   }
 
+                  // Determine layout direction based on alignment
+                  // If blocks have left/right alignment → horizontal layout
+                  // If blocks have center alignment → vertical layout
+                  const firstBlockAlignment = (inlineBlocks[0] as any).alignment;
+                  const hasLeftRightAlignment = inlineBlocks.some(b =>
+                    (b as any).alignment === "left" || (b as any).alignment === "right"
+                  );
+                  const flexDirection = hasLeftRightAlignment ? "row" : "column";
+                  const justifyContent = "center";
+                  const alignItems = "center";
+
                   const groupId = `inline-group-${block.id}`;
                   const isGroupSelected = selectedInlineGroup === groupId;
                   const isGroupHovered = hoveredInlineGroup === groupId;
@@ -176,7 +187,8 @@ export const EmailCanvas: React.FC<EmailCanvasProps> = ({
                   return (
                     <div
                       key={groupId}
-                      className="relative"
+                      className="relative w-full block mb-0"
+                      style={{ display: "block", width: "100%" }}
                       onMouseEnter={() => setHoveredInlineGroup(groupId)}
                       onMouseLeave={() => setHoveredInlineGroup(null)}
                       onClick={(e) => {
@@ -190,12 +202,24 @@ export const EmailCanvas: React.FC<EmailCanvasProps> = ({
                       )}
                       style={{
                         display: "flex",
-                        flexDirection: "column",
+                        flexDirection: flexDirection,
                         alignItems: "center",
-                        gap: "0",
+                        justifyContent: justifyContent,
+                        gap: "24px",
+                        flexWrap: "nowrap",
                       }}>
                         {inlineBlocks.map((inlineBlock, i) => (
-                          <div key={inlineBlock.id} className="w-full" onClick={(e) => e.stopPropagation()}>
+                          <div
+                            key={inlineBlock.id}
+                            className="flex-shrink-0"
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              flexShrink: 0
+                            }}
+                          >
                             <DraggableBlock
                               block={inlineBlock}
                               index={index + i}
@@ -215,9 +239,16 @@ export const EmailCanvas: React.FC<EmailCanvasProps> = ({
                                 onAddBlock(newBlock, position);
                               }}
                               onDuplicate={(blockToDuplicate, position) => {
-                                onDuplicateBlock?.(blockToDuplicate, position);
+                                // Duplicate entire inline group, not just individual block
+                                const lastInlineBlockIndex = index + inlineBlocks.length - 1;
+                                inlineBlocks.forEach((block, idx) => {
+                                  onDuplicateBlock?.(block, lastInlineBlockIndex + 1 + idx);
+                                });
                               }}
-                              onDelete={(blockId) => onDeleteBlock?.(blockId)}
+                              onDelete={(blockId) => {
+                                // If all blocks in group are deleted, it will be handled automatically
+                                onDeleteBlock?.(blockId);
+                              }}
                               isPartOfInlineGroup={true}
                             />
                           </div>

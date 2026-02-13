@@ -42,8 +42,42 @@ export const EmailPreview: React.FC<EmailPreviewProps> = ({ template }) => {
     return block.visibility === "desktop";
   });
 
-  const htmlContent = filteredBlocks
-    .map((block) => renderBlockToHTML(block))
+  // Group inline blocks together for proper rendering
+  const groupedBlocks: (any)[] = [];
+  let inlineGroup: any[] = [];
+
+  for (const block of filteredBlocks) {
+    const isInline = (block as any).displayMode === "inline";
+    if (isInline) {
+      inlineGroup.push(block);
+    } else {
+      if (inlineGroup.length > 0) {
+        groupedBlocks.push({ _isInlineGroup: true, blocks: inlineGroup });
+        inlineGroup = [];
+      }
+      groupedBlocks.push(block);
+    }
+  }
+
+  // Add any remaining inline group
+  if (inlineGroup.length > 0) {
+    groupedBlocks.push({ _isInlineGroup: true, blocks: inlineGroup });
+  }
+
+  const htmlContent = groupedBlocks
+    .map((item) => {
+      if (item._isInlineGroup) {
+        const inlineHtml = item.blocks
+          .map((block: any) => {
+            const blockHtml = renderBlockToHTML(block);
+            return `<div style="flex: 0 0 auto;">${blockHtml}</div>`;
+          })
+          .join("");
+        const justifyValue = device === "mobile" ? "center" : "space-between";
+        return `<div style="display: flex; flex-direction: row; align-items: center; justify-content: ${justifyValue}; gap: 24px; width: 100%; margin: 0 auto; flex-wrap: wrap;">${inlineHtml}</div>`;
+      }
+      return renderBlockToHTML(item);
+    })
     .join("");
 
   return (

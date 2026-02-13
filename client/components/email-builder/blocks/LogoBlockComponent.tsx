@@ -21,41 +21,38 @@ export const LogoBlockComponent: React.FC<LogoBlockComponentProps> = ({
       }`}
       style={{
         padding: `${(block as any).padding || 16}px`,
-        display: "block",
-        width: isInlineDisplay ? "auto" : "100%",
+        display: isInlineDisplay ? "inline-block" : "block",
+        width: "auto",
+        verticalAlign: "middle",
       }}
     >
-      <div style={{ textAlign: "center" }}>
-        {block.src ? (
-          <img
-            src={block.src}
-            alt={block.alt}
-            style={{
-              width: `${block.width}px`,
-              height: `${block.height}px`,
-              display: block.alignment === "center" ? "block" : "inline",
-              margin: block.alignment === "center" ? "0 auto" : "0",
-            }}
-          />
-        ) : (
-          <div
-            style={{
-              width: `${block.width}px`,
-              height: `${block.height}px`,
-              backgroundColor: "#f0f0f0",
-              border: "2px dashed #ccc",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#999",
-              borderRadius: "4px",
-              margin: block.alignment === "center" ? "0 auto" : "0",
-            }}
-          >
-            <span className="text-sm">Logo Image</span>
-          </div>
-        )}
-      </div>
+      {block.src ? (
+        <img
+          src={block.src}
+          alt={block.alt}
+          style={{
+            width: `${block.width}px`,
+            height: `${block.height}px`,
+            display: "block",
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            width: `${block.width}px`,
+            height: `${block.height}px`,
+            backgroundColor: "#f0f0f0",
+            border: "2px dashed #ccc",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#999",
+            borderRadius: "4px",
+          }}
+        >
+          <span className="text-sm">Logo Image</span>
+        </div>
+      )}
     </div>
   );
 };

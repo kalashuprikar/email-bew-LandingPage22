@@ -15,6 +15,7 @@ import { NavigationBlockComponent } from "./blocks/NavigationBlockComponent";
 import { HeaderBlockComponent } from "./blocks/HeaderBlockComponent";
 import { FooterBlockComponent } from "./blocks/FooterBlockComponent";
 import { FooterWithSocialBlockComponent } from "./blocks/FooterWithSocialBlockComponent";
+import { FooterWithContactBlockComponent } from "./blocks/FooterWithContactBlockComponent";
 import { SpacerBlockComponent } from "./blocks/SpacerBlockComponent";
 import { CenteredImageCardBlockComponent } from "./blocks/CenteredImageCardBlockComponent";
 import { SplitImageCardBlockComponent } from "./blocks/SplitImageCardBlockComponent";
@@ -209,6 +210,21 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({
               onBlockUpdate({ ...block, [field]: value })
             }
             onSocialUpdate={(social) => onBlockUpdate({ ...block, social })}
+            onElementSelect={onFooterElementSelect}
+            onBlockSelect={onBlockSelect}
+          />
+        </div>
+      );
+    case "footer-with-contact":
+      return (
+        <div onClick={handleClick}>
+          <FooterWithContactBlockComponent
+            block={block as any}
+            isSelected={isSelected}
+            selectedElement={selectedFooterElement}
+            onContentChange={(field, value) =>
+              onBlockUpdate({ ...block, [field]: value })
+            }
             onElementSelect={onFooterElementSelect}
             onBlockSelect={onBlockSelect}
           />

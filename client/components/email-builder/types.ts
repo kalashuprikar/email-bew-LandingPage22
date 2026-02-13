@@ -369,6 +369,61 @@ export interface FooterWithSocialBlock {
   visibility: "all" | "desktop" | "mobile";
 }
 
+export interface FooterWithContactBlock {
+  type: "footer-with-contact";
+  id: string;
+  enterpriseName: {
+    content: string;
+    fontSize: number;
+    fontColor: string;
+    fontWeight: "normal" | "bold";
+    fontFamily: string;
+    fontStyle: "normal" | "italic";
+    padding: number;
+  };
+  address: {
+    content: string;
+    fontSize: number;
+    fontColor: string;
+    fontWeight: "normal" | "bold";
+    fontFamily: string;
+    fontStyle: "normal" | "italic";
+    padding: number;
+  };
+  privacyLinks: {
+    content: string;
+    fontSize: number;
+    fontColor: string;
+    fontWeight: "normal" | "bold";
+    padding: number;
+  };
+  email: {
+    content: string;
+    fontSize: number;
+    fontColor: string;
+    fontWeight: "normal" | "bold";
+    padding: number;
+  };
+  phone: {
+    content: string;
+    fontSize: number;
+    fontColor: string;
+    fontWeight: "normal" | "bold";
+    padding: number;
+  };
+  unsubscribeLink: {
+    text: string;
+    url: string;
+    fontSize: number;
+    fontColor: string;
+    fontWeight: "normal" | "bold";
+    padding: number;
+  };
+  backgroundColor: string;
+  padding: number;
+  visibility: "all" | "desktop" | "mobile";
+}
+
 export interface SpacerBlock {
   type: "spacer";
   id: string;
@@ -540,6 +595,7 @@ export type ContentBlock =
   | HeaderBlock
   | FooterBlock
   | FooterWithSocialBlock
+  | FooterWithContactBlock
   | SpacerBlock
   | CenteredImageCardBlock
   | SplitImageCardBlock

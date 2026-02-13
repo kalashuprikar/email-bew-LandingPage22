@@ -555,36 +555,60 @@ export function createFooterWithSocialTemplate(): ContentBlock[] {
 }
 
 export function createFooterWithContactTemplate(): ContentBlock[] {
-  const footerContent = `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; padding: 30px 20px; margin: 0; border-top: 1px solid #e0e0e0;">
-  <tr>
-    <td style="text-align: left; vertical-align: top; width: 50%; padding-right: 15px;">
-      <h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: bold; color: #000;">Enterprise name</h3>
-      <p style="margin: 0; font-size: 12px; color: #666; line-height: 1.6;">69 Street Name, 00000, City</p>
-    </td>
-    <td style="text-align: right; vertical-align: top; width: 50%; padding-left: 15px;">
-      <p style="margin: 0 0 8px 0; font-size: 12px; color: #666;">
-        <a href="#" style="color: #666; text-decoration: none;">Privacy</a> |
-        <a href="#" style="color: #666; text-decoration: none;">Terms</a> |
-        <a href="#" style="color: #666; text-decoration: none;">Policy</a>
-      </p>
-      <p style="margin: 0 0 5px 0; font-size: 12px; color: #666;">
-        <a href="mailto:contact@enterprise.com" style="color: #666; text-decoration: none;">contact@enterprise.com</a>
-      </p>
-      <p style="margin: 0; font-size: 12px; color: #666;">
-        <a href="tel:+33901230467" style="color: #666; text-decoration: none;">+33 901 23 04 67</a>
-      </p>
-    </td>
-  </tr>
-  <tr>
-    <td colspan="2" style="padding-top: 15px; border-top: 1px solid #e0e0e0;">
-      <p style="margin: 0; font-size: 11px; color: #999; text-align: center;">
-        <a href="#" style="color: #999; text-decoration: none;">Unsubscribe</a>
-      </p>
-    </td>
-  </tr>
-</table>`;
-
-  return [createHtmlBlock(footerContent)];
+  return [{
+    type: "footer-with-contact",
+    id: generateId(),
+    enterpriseName: {
+      content: "Enterprise name",
+      fontSize: 14,
+      fontColor: "#000000",
+      fontWeight: "bold",
+      fontFamily: "Arial",
+      fontStyle: "normal",
+      padding: 10,
+    },
+    address: {
+      content: "69 Street Name, 00000, City",
+      fontSize: 12,
+      fontColor: "#666666",
+      fontWeight: "normal",
+      fontFamily: "Arial",
+      fontStyle: "normal",
+      padding: 10,
+    },
+    privacyLinks: {
+      content: "Privacy | Terms | Policy",
+      fontSize: 12,
+      fontColor: "#666666",
+      fontWeight: "normal",
+      padding: 10,
+    },
+    email: {
+      content: "contact@enterprise.com",
+      fontSize: 12,
+      fontColor: "#666666",
+      fontWeight: "normal",
+      padding: 10,
+    },
+    phone: {
+      content: "+33 901 23 04 67",
+      fontSize: 12,
+      fontColor: "#666666",
+      fontWeight: "normal",
+      padding: 10,
+    },
+    unsubscribeLink: {
+      text: "Unsubscribe",
+      url: "#",
+      fontSize: 11,
+      fontColor: "#999999",
+      fontWeight: "normal",
+      padding: 10,
+    },
+    backgroundColor: "#ffffff",
+    padding: 30,
+    visibility: "all",
+  } as any];
 }
 
 export function createTopImageSectionTemplate(): ContentBlock[] {
@@ -1389,9 +1413,43 @@ export function renderBlockToHTML(block: ContentBlock): string {
 }
 
 export function renderTemplateToHTML(template: EmailTemplate): string {
-  const bodyContent = template.blocks
-    .map((block) => renderBlockToHTML(block))
+  // Group inline blocks together for proper rendering
+  const groupedBlocks: (any)[] = [];
+  let inlineGroup: any[] = [];
+
+  for (const block of template.blocks) {
+    const isInline = (block as any).displayMode === "inline";
+    if (isInline) {
+      inlineGroup.push(block);
+    } else {
+      if (inlineGroup.length > 0) {
+        groupedBlocks.push({ _isInlineGroup: true, blocks: inlineGroup });
+        inlineGroup = [];
+      }
+      groupedBlocks.push(block);
+    }
+  }
+
+  // Add any remaining inline group
+  if (inlineGroup.length > 0) {
+    groupedBlocks.push({ _isInlineGroup: true, blocks: inlineGroup });
+  }
+
+  const bodyContent = groupedBlocks
+    .map((item) => {
+      if (item._isInlineGroup) {
+        const inlineHtml = item.blocks
+          .map((block: any) => {
+            const blockHtml = renderBlockToHTML(block);
+            return `<div style="flex: 0 0 auto;">${blockHtml}</div>`;
+          })
+          .join("");
+        return `<div style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 24px; width: 100%; margin: 0 auto; flex-wrap: wrap;">${inlineHtml}</div>`;
+      }
+      return renderBlockToHTML(item);
+    })
     .join("");
+
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -1399,7 +1457,7 @@ export function renderTemplateToHTML(template: EmailTemplate): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${template.subject}</title>
 </head>
-<body style="background-color: ${template.backgroundColor}; padding: ${template.padding}px; font-family: Arial, sans-serif;">
+<body style="background-color: ${template.backgroundColor}; padding: ${template.padding}px; font-family: Arial, sans-serif; margin: 0; padding: 0;">
   <div style="max-width: 600px; margin: 0 auto;">
     ${bodyContent}
   </div>

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Copy, Trash2 } from "lucide-react";
+import { Copy, Trash2, GripHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FooterWithSocialBlock } from "../types";
 import { SocialBlockComponent } from "./SocialBlockComponent";
@@ -15,6 +15,7 @@ interface FooterWithSocialBlockComponentProps {
   onDuplicate?: (block: FooterWithSocialBlock, position: number) => void;
   onDelete?: (blockId: string) => void;
   blockIndex?: number;
+  onDuplicateSection?: (sectionType: string) => void;
 }
 
 export const FooterWithSocialBlockComponent: React.FC<
@@ -33,6 +34,8 @@ export const FooterWithSocialBlockComponent: React.FC<
 }) => {
   const [hoveredSection, setHoveredSection] = React.useState<string | null>(null);
   const [selectedSection, setSelectedSection] = React.useState<string | null>(null);
+  const [sectionDuplicates, setSectionDuplicates] = React.useState<{ [key: string]: any[] }>({});
+  const [sectionOrder, setSectionOrder] = React.useState<string[]>(["social", "enterpriseName", "address", "subscriptionText", "unsubscribeLink"]);
 
   const handleFieldChange = (
     field: keyof typeof block,
@@ -59,43 +62,68 @@ export const FooterWithSocialBlockComponent: React.FC<
 
   const handleCopySection = (sectionType: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    try {
-      // Copy section data to clipboard as JSON
-      const sectionData: any = {
-        type: block.type,
-        sectionType,
-        data: block[sectionType as keyof typeof block],
-      };
-      navigator.clipboard.writeText(JSON.stringify(sectionData, null, 2));
-      // No notification - just copy silently
-    } catch (err) {
-      console.error("Failed to copy:", err);
-    }
+    // Duplicate the specific section content within the footer
+    const fieldValue = block[sectionType as keyof typeof block];
+    const duplicatedValue = { ...(fieldValue as any) };
+
+    // Add duplicate to state
+    setSectionDuplicates(prev => ({
+      ...prev,
+      [sectionType]: [...(prev[sectionType] || []), duplicatedValue]
+    }));
+  };
+
+  const handleDeleteDuplicate = (sectionType: string, index: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSectionDuplicates(prev => ({
+      ...prev,
+      [sectionType]: prev[sectionType]?.filter((_, i) => i !== index) || []
+    }));
+  };
+
+  const handleDuplicateChange = (sectionType: string, index: number, field: string, value: string) => {
+    setSectionDuplicates(prev => {
+      const updated = [...(prev[sectionType] || [])];
+      updated[index] = { ...updated[index], [field]: value };
+      return { ...prev, [sectionType]: updated };
+    });
   };
 
   const handleDeleteSection = (sectionType: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    // Confirm deletion
-    if (confirm("Are you sure you want to delete this section?")) {
-      // Reset the section with empty/default values
-      const fieldValue = block[sectionType as keyof typeof block];
-      const resetValue = { ...(fieldValue as any) };
+    // Reset the section with empty/default values
+    const fieldValue = block[sectionType as keyof typeof block];
+    const resetValue = { ...(fieldValue as any) };
 
-      // Clear all content-related fields based on section type
-      if (sectionType === "social") {
-        resetValue.platforms = [];
-      } else if (sectionType === "unsubscribeLink") {
-        resetValue.text = "";
-        resetValue.url = "";
-      } else {
-        // For other sections (enterpriseName, address, subscriptionText)
-        if ("content" in resetValue) {
-          resetValue.content = "";
-        }
+    // Clear all content-related fields based on section type
+    if (sectionType === "social") {
+      resetValue.platforms = [];
+    } else if (sectionType === "unsubscribeLink") {
+      resetValue.text = "";
+      resetValue.url = "";
+    } else {
+      // For other sections (enterpriseName, address, subscriptionText)
+      if ("content" in resetValue) {
+        resetValue.content = "";
       }
+    }
 
-      onContentChange(sectionType, resetValue);
-      setSelectedSection(null);
+    onContentChange(sectionType, resetValue);
+    setSelectedSection(null);
+  };
+
+  const handleMoveSection = (sectionType: string, direction: "up" | "down", e: React.MouseEvent) => {
+    e.stopPropagation();
+    const currentIndex = sectionOrder.indexOf(sectionType);
+    if (currentIndex === -1) return;
+
+    const newOrder = [...sectionOrder];
+    if (direction === "up" && currentIndex > 0) {
+      [newOrder[currentIndex], newOrder[currentIndex - 1]] = [newOrder[currentIndex - 1], newOrder[currentIndex]];
+      setSectionOrder(newOrder);
+    } else if (direction === "down" && currentIndex < newOrder.length - 1) {
+      [newOrder[currentIndex], newOrder[currentIndex + 1]] = [newOrder[currentIndex + 1], newOrder[currentIndex]];
+      setSectionOrder(newOrder);
     }
   };
 
@@ -116,10 +144,14 @@ export const FooterWithSocialBlockComponent: React.FC<
               e.stopPropagation();
               handleElementSelect("social");
             }}
+            onMouseEnter={() => setHoveredSection("social")}
+            onMouseLeave={() => setHoveredSection(null)}
             className={`py-4 px-2 cursor-pointer rounded transition-all relative ${
               selectedElement === "social"
-                ? "ring-2 ring-valasys-orange"
-                : ""
+                ? "border-2 border-valasys-orange"
+                : hoveredSection === "social"
+                  ? "border-2 border-dashed border-valasys-orange"
+                  : ""
             }`}
             style={{
               width:
@@ -184,18 +216,24 @@ export const FooterWithSocialBlockComponent: React.FC<
               })}
             </div>
             {selectedElement === "social" && (
-              <div className="flex gap-1 justify-center mt-2">
+              <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 bg-white rounded-full px-2 py-1 shadow-lg">
+                <button
+                  title="Drag to reorder"
+                  className="p-1.5 text-gray-700 cursor-grab active:cursor-grabbing hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                >
+                  <GripHorizontal className="w-4 h-4" />
+                </button>
                 <button
                   onClick={(e) => handleCopySection("social", e)}
                   title="Copy section"
-                  className="p-1.5 text-gray-500 hover:text-orange-600 hover:bg-orange-50 rounded transition-colors"
+                  className="p-1.5 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded transition-colors"
                 >
                   <Copy className="w-4 h-4" />
                 </button>
                 <button
                   onClick={(e) => handleDeleteSection("social", e)}
                   title="Delete section"
-                  className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                  className="p-1.5 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -209,9 +247,13 @@ export const FooterWithSocialBlockComponent: React.FC<
           <div
             className={`cursor-pointer rounded p-2 transition-all relative ${
               selectedElement === "enterpriseName"
-                ? "ring-2 ring-valasys-orange"
-                : ""
+                ? "border-2 border-valasys-orange"
+                : hoveredSection === "enterpriseName"
+                  ? "border-2 border-dashed border-valasys-orange"
+                  : ""
             }`}
+            onMouseEnter={() => setHoveredSection("enterpriseName")}
+            onMouseLeave={() => setHoveredSection(null)}
             onClick={(e) => {
               e.stopPropagation();
               handleElementSelect("enterpriseName");
@@ -225,7 +267,7 @@ export const FooterWithSocialBlockComponent: React.FC<
                   handleFieldChange("enterpriseName", "content", e.target.value)
                 }
                 autoFocus
-                className="w-full border border-valasys-orange rounded px-2 py-1 text-center"
+                className="w-full rounded px-2 py-1 text-center outline-none"
                 style={{
                   fontSize: `${block.enterpriseName.fontSize}px`,
                   fontWeight: block.enterpriseName.fontWeight,
@@ -248,18 +290,18 @@ export const FooterWithSocialBlockComponent: React.FC<
               </h3>
             )}
             {selectedElement === "enterpriseName" && (
-              <div className="flex gap-1 justify-center mt-2">
+              <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 bg-white rounded-full px-2 py-1 shadow-lg">
                 <button
                   onClick={(e) => handleCopySection("enterpriseName", e)}
                   title="Copy section"
-                  className="p-1.5 text-gray-500 hover:text-orange-600 hover:bg-orange-50 rounded transition-colors"
+                  className="p-1.5 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded transition-colors"
                 >
                   <Copy className="w-4 h-4" />
                 </button>
                 <button
                   onClick={(e) => handleDeleteSection("enterpriseName", e)}
                   title="Delete section"
-                  className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                  className="p-1.5 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -268,14 +310,81 @@ export const FooterWithSocialBlockComponent: React.FC<
           </div>
         )}
 
+        {/* Duplicate Enterprise Name Sections */}
+        {sectionDuplicates.enterpriseName?.map((duplicate, dupIndex) => (
+          <div
+            key={`enterpriseName-dup-${dupIndex}`}
+            className={`cursor-pointer rounded p-2 transition-all relative border-2 border-dashed border-valasys-orange`}
+            onMouseEnter={() => setHoveredSection(`enterpriseName-dup-${dupIndex}`)}
+            onMouseLeave={() => setHoveredSection(null)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleElementSelect(`enterpriseName-dup-${dupIndex}`);
+            }}
+          >
+            {selectedElement === `enterpriseName-dup-${dupIndex}` ? (
+              <input
+                type="text"
+                value={duplicate.content}
+                onChange={(e) =>
+                  handleDuplicateChange("enterpriseName", dupIndex, "content", e.target.value)
+                }
+                autoFocus
+                className="w-full rounded px-2 py-1 text-center outline-none"
+                style={{
+                  fontSize: `${duplicate.fontSize}px`,
+                  fontWeight: duplicate.fontWeight,
+                  color: duplicate.fontColor,
+                }}
+              />
+            ) : (
+              <h3
+                style={{
+                  fontSize: `${duplicate.fontSize}px`,
+                  fontWeight: duplicate.fontWeight,
+                  color: duplicate.fontColor,
+                  fontFamily: duplicate.fontFamily,
+                  fontStyle: duplicate.fontStyle,
+                  margin: 0,
+                  padding: `${duplicate.padding}px`,
+                }}
+              >
+                {duplicate.content}
+              </h3>
+            )}
+            {selectedElement === `enterpriseName-dup-${dupIndex}` && (
+              <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 bg-white rounded-full px-2 py-1 shadow-lg">
+                <button
+                  onClick={(e) => handleCopySection("enterpriseName", e)}
+                  title="Copy section"
+                  className="p-1.5 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded transition-colors"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={(e) => handleDeleteDuplicate("enterpriseName", dupIndex, e)}
+                  title="Delete section"
+                  className="p-1.5 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+
         {/* Address */}
         {block.address.content && (
           <div
             className={`cursor-pointer rounded p-2 transition-all relative ${
               selectedElement === "address"
-                ? "ring-2 ring-valasys-orange"
-                : ""
+                ? "border-2 border-valasys-orange"
+                : hoveredSection === "address"
+                  ? "border-2 border-dashed border-valasys-orange"
+                  : ""
             }`}
+            onMouseEnter={() => setHoveredSection("address")}
+            onMouseLeave={() => setHoveredSection(null)}
             onClick={(e) => {
               e.stopPropagation();
               handleElementSelect("address");
@@ -288,7 +397,7 @@ export const FooterWithSocialBlockComponent: React.FC<
                   handleFieldChange("address", "content", e.target.value)
                 }
                 autoFocus
-                className="w-full border border-valasys-orange rounded px-2 py-1 text-center"
+                className="w-full rounded px-2 py-1 text-center outline-none"
                 style={{
                   fontSize: `${block.address.fontSize}px`,
                   fontWeight: block.address.fontWeight,
@@ -313,18 +422,18 @@ export const FooterWithSocialBlockComponent: React.FC<
               </p>
             )}
             {selectedElement === "address" && (
-              <div className="flex gap-1 justify-center mt-2">
+              <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 bg-white rounded-full px-2 py-1 shadow-lg">
                 <button
                   onClick={(e) => handleCopySection("address", e)}
                   title="Copy section"
-                  className="p-1.5 text-gray-500 hover:text-orange-600 hover:bg-orange-50 rounded transition-colors"
+                  className="p-1.5 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded transition-colors"
                 >
                   <Copy className="w-4 h-4" />
                 </button>
                 <button
                   onClick={(e) => handleDeleteSection("address", e)}
                   title="Delete section"
-                  className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                  className="p-1.5 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -333,14 +442,82 @@ export const FooterWithSocialBlockComponent: React.FC<
           </div>
         )}
 
+        {/* Duplicate Address Sections */}
+        {sectionDuplicates.address?.map((duplicate, dupIndex) => (
+          <div
+            key={`address-dup-${dupIndex}`}
+            className={`cursor-pointer rounded p-2 transition-all relative border-2 border-dashed border-valasys-orange`}
+            onMouseEnter={() => setHoveredSection(`address-dup-${dupIndex}`)}
+            onMouseLeave={() => setHoveredSection(null)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleElementSelect(`address-dup-${dupIndex}`);
+            }}
+          >
+            {selectedElement === `address-dup-${dupIndex}` ? (
+              <textarea
+                value={duplicate.content}
+                onChange={(e) =>
+                  handleDuplicateChange("address", dupIndex, "content", e.target.value)
+                }
+                autoFocus
+                className="w-full rounded px-2 py-1 text-center outline-none"
+                style={{
+                  fontSize: `${duplicate.fontSize}px`,
+                  fontWeight: duplicate.fontWeight,
+                  color: duplicate.fontColor,
+                }}
+                rows={2}
+              />
+            ) : (
+              <p
+                style={{
+                  fontSize: `${duplicate.fontSize}px`,
+                  fontWeight: duplicate.fontWeight,
+                  color: duplicate.fontColor,
+                  fontFamily: duplicate.fontFamily,
+                  fontStyle: duplicate.fontStyle,
+                  margin: 0,
+                  padding: `${duplicate.padding}px`,
+                  lineHeight: "1.6",
+                }}
+              >
+                {duplicate.content}
+              </p>
+            )}
+            {selectedElement === `address-dup-${dupIndex}` && (
+              <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 bg-white rounded-full px-2 py-1 shadow-lg">
+                <button
+                  onClick={(e) => handleCopySection("address", e)}
+                  title="Copy section"
+                  className="p-1.5 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded transition-colors"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={(e) => handleDeleteDuplicate("address", dupIndex, e)}
+                  title="Delete section"
+                  className="p-1.5 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+
         {/* Subscription Text */}
         {block.subscriptionText.content && (
           <div
             className={`cursor-pointer rounded p-2 transition-all relative ${
               selectedElement === "subscriptionText"
-                ? "ring-2 ring-valasys-orange"
-                : ""
+                ? "border-2 border-valasys-orange"
+                : hoveredSection === "subscriptionText"
+                  ? "border-2 border-dashed border-valasys-orange"
+                  : ""
             }`}
+            onMouseEnter={() => setHoveredSection("subscriptionText")}
+            onMouseLeave={() => setHoveredSection(null)}
             onClick={(e) => {
               e.stopPropagation();
               handleElementSelect("subscriptionText");
@@ -353,7 +530,7 @@ export const FooterWithSocialBlockComponent: React.FC<
                   handleFieldChange("subscriptionText", "content", e.target.value)
                 }
                 autoFocus
-                className="w-full border border-valasys-orange rounded px-2 py-1 text-center"
+                className="w-full rounded px-2 py-1 text-center outline-none"
                 style={{
                   fontSize: `${block.subscriptionText.fontSize}px`,
                   fontWeight: block.subscriptionText.fontWeight,
@@ -377,18 +554,18 @@ export const FooterWithSocialBlockComponent: React.FC<
               </p>
             )}
             {selectedElement === "subscriptionText" && (
-              <div className="flex gap-1 justify-center mt-2">
+              <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 bg-white rounded-full px-2 py-1 shadow-lg">
                 <button
                   onClick={(e) => handleCopySection("subscriptionText", e)}
                   title="Copy section"
-                  className="p-1.5 text-gray-500 hover:text-orange-600 hover:bg-orange-50 rounded transition-colors"
+                  className="p-1.5 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded transition-colors"
                 >
                   <Copy className="w-4 h-4" />
                 </button>
                 <button
                   onClick={(e) => handleDeleteSection("subscriptionText", e)}
                   title="Delete section"
-                  className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                  className="p-1.5 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -397,14 +574,81 @@ export const FooterWithSocialBlockComponent: React.FC<
           </div>
         )}
 
+        {/* Duplicate Subscription Text Sections */}
+        {sectionDuplicates.subscriptionText?.map((duplicate, dupIndex) => (
+          <div
+            key={`subscriptionText-dup-${dupIndex}`}
+            className={`cursor-pointer rounded p-2 transition-all relative border-2 border-dashed border-valasys-orange`}
+            onMouseEnter={() => setHoveredSection(`subscriptionText-dup-${dupIndex}`)}
+            onMouseLeave={() => setHoveredSection(null)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleElementSelect(`subscriptionText-dup-${dupIndex}`);
+            }}
+          >
+            {selectedElement === `subscriptionText-dup-${dupIndex}` ? (
+              <textarea
+                value={duplicate.content}
+                onChange={(e) =>
+                  handleDuplicateChange("subscriptionText", dupIndex, "content", e.target.value)
+                }
+                autoFocus
+                className="w-full rounded px-2 py-1 text-center outline-none"
+                style={{
+                  fontSize: `${duplicate.fontSize}px`,
+                  fontWeight: duplicate.fontWeight,
+                  color: duplicate.fontColor,
+                }}
+                rows={2}
+              />
+            ) : (
+              <p
+                style={{
+                  fontSize: `${duplicate.fontSize}px`,
+                  fontWeight: duplicate.fontWeight,
+                  color: duplicate.fontColor,
+                  fontFamily: duplicate.fontFamily,
+                  fontStyle: duplicate.fontStyle,
+                  margin: 0,
+                  padding: `${duplicate.padding}px`,
+                }}
+              >
+                {duplicate.content}
+              </p>
+            )}
+            {selectedElement === `subscriptionText-dup-${dupIndex}` && (
+              <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 bg-white rounded-full px-2 py-1 shadow-lg">
+                <button
+                  onClick={(e) => handleCopySection("subscriptionText", e)}
+                  title="Copy section"
+                  className="p-1.5 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded transition-colors"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={(e) => handleDeleteDuplicate("subscriptionText", dupIndex, e)}
+                  title="Delete section"
+                  className="p-1.5 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+
         {/* Unsubscribe Link */}
         {block.unsubscribeLink.text && (
           <div
             className={`cursor-pointer rounded p-2 transition-all relative ${
               selectedElement === "unsubscribeLink"
-                ? "ring-2 ring-valasys-orange"
-                : ""
+                ? "border-2 border-valasys-orange"
+                : hoveredSection === "unsubscribeLink"
+                  ? "border-2 border-dashed border-valasys-orange"
+                  : ""
             }`}
+            onMouseEnter={() => setHoveredSection("unsubscribeLink")}
+            onMouseLeave={() => setHoveredSection(null)}
             onClick={(e) => {
               e.stopPropagation();
               handleElementSelect("unsubscribeLink");
@@ -419,7 +663,7 @@ export const FooterWithSocialBlockComponent: React.FC<
                     handleFieldChange("unsubscribeLink", "text", e.target.value)
                   }
                   placeholder="Link text"
-                  className="w-full border border-valasys-orange rounded px-2 py-1 text-sm"
+                  className="w-full rounded px-2 py-1 text-sm outline-none"
                 />
                 <input
                   type="url"
@@ -428,7 +672,7 @@ export const FooterWithSocialBlockComponent: React.FC<
                     handleFieldChange("unsubscribeLink", "url", e.target.value)
                   }
                   placeholder="https://"
-                  className="w-full border border-valasys-orange rounded px-2 py-1 text-sm"
+                  className="w-full rounded px-2 py-1 text-sm outline-none"
                 />
               </div>
             ) : (
@@ -448,18 +692,18 @@ export const FooterWithSocialBlockComponent: React.FC<
               </a>
             )}
             {selectedElement === "unsubscribeLink" && (
-              <div className="flex gap-1 justify-center mt-2">
+              <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 bg-white rounded-full px-2 py-1 shadow-lg">
                 <button
                   onClick={(e) => handleCopySection("unsubscribeLink", e)}
                   title="Copy section"
-                  className="p-1.5 text-gray-500 hover:text-orange-600 hover:bg-orange-50 rounded transition-colors"
+                  className="p-1.5 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded transition-colors"
                 >
                   <Copy className="w-4 h-4" />
                 </button>
                 <button
                   onClick={(e) => handleDeleteSection("unsubscribeLink", e)}
                   title="Delete section"
-                  className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                  className="p-1.5 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -467,6 +711,76 @@ export const FooterWithSocialBlockComponent: React.FC<
             )}
           </div>
         )}
+
+        {/* Duplicate Unsubscribe Link Sections */}
+        {sectionDuplicates.unsubscribeLink?.map((duplicate, dupIndex) => (
+          <div
+            key={`unsubscribeLink-dup-${dupIndex}`}
+            className={`cursor-pointer rounded p-2 transition-all relative border-2 border-dashed border-valasys-orange`}
+            onMouseEnter={() => setHoveredSection(`unsubscribeLink-dup-${dupIndex}`)}
+            onMouseLeave={() => setHoveredSection(null)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleElementSelect(`unsubscribeLink-dup-${dupIndex}`);
+            }}
+          >
+            {selectedElement === `unsubscribeLink-dup-${dupIndex}` ? (
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={duplicate.text}
+                  onChange={(e) =>
+                    handleDuplicateChange("unsubscribeLink", dupIndex, "text", e.target.value)
+                  }
+                  placeholder="Link text"
+                  className="w-full rounded px-2 py-1 text-sm outline-none"
+                />
+                <input
+                  type="url"
+                  value={duplicate.url}
+                  onChange={(e) =>
+                    handleDuplicateChange("unsubscribeLink", dupIndex, "url", e.target.value)
+                  }
+                  placeholder="https://"
+                  className="w-full rounded px-2 py-1 text-sm outline-none"
+                />
+              </div>
+            ) : (
+              <a
+                href={duplicate.url}
+                style={{
+                  fontSize: `${duplicate.fontSize}px`,
+                  fontWeight: duplicate.fontWeight,
+                  color: duplicate.fontColor,
+                  fontFamily: duplicate.fontFamily,
+                  fontStyle: duplicate.fontStyle,
+                  padding: `${duplicate.padding}px`,
+                  textDecoration: duplicate.textDecoration,
+                }}
+              >
+                {duplicate.text}
+              </a>
+            )}
+            {selectedElement === `unsubscribeLink-dup-${dupIndex}` && (
+              <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 bg-white rounded-full px-2 py-1 shadow-lg">
+                <button
+                  onClick={(e) => handleCopySection("unsubscribeLink", e)}
+                  title="Copy section"
+                  className="p-1.5 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded transition-colors"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={(e) => handleDeleteDuplicate("unsubscribeLink", dupIndex, e)}
+                  title="Delete section"
+                  className="p-1.5 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </footer>
   );
