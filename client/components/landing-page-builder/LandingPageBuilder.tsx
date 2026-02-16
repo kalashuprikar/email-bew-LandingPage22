@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { ChevronLeft, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -148,6 +149,18 @@ export const LandingPageBuilder: React.FC<LandingPageBuilderProps> = ({
     });
   };
 
+  const handleAddBlockAtIndex = (blockIndex: number, block: LandingPageBlock) => {
+    if (!page) return;
+
+    const newBlocks = [...page.blocks];
+    newBlocks.splice(blockIndex, 0, block);
+
+    setPage({
+      ...page,
+      blocks: newBlocks,
+    });
+  };
+
   const handleSelectTemplate = (blocks: LandingPageBlock[]) => {
     if (!page) return;
 
@@ -258,6 +271,7 @@ export const LandingPageBuilder: React.FC<LandingPageBuilderProps> = ({
               onMoveBlock={handleMoveBlock}
               onDuplicateBlock={handleDuplicateBlock}
               onReorderBlocks={handleReorderBlocks}
+              onAddBlock={handleAddBlockAtIndex}
             />
           </div>
         </div>
