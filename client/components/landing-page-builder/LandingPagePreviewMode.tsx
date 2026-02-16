@@ -172,7 +172,6 @@ export const LandingPagePreviewMode: React.FC<LandingPagePreviewModeProps> = ({
             width: getDeviceWidth(),
             backgroundColor: "white",
             borderRadius: "8px",
-            boxShadow: "0 10px 40px rgba(0, 0, 0, 0.3)",
             overflow: "hidden",
           }}
           className="flex-shrink-0"

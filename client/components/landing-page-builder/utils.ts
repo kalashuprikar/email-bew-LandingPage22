@@ -23,11 +23,8 @@ export const createHeroBlock = (): LandingPageBlock => ({
   id: `hero-${Date.now()}`,
   type: "hero",
   properties: {
-    backgroundImageUrl: "",
-    backgroundType: "color", // 'color' or 'image' or 'gradient'
+    backgroundImage: "",
     backgroundColor: "#f3f4f6",
-    gradientStart: "#ffffff",
-    gradientEnd: "#f3f4f6",
     headline: "Transform Your Creativity Today!",
     subheading: "Unlock new tools and grow your skills",
     ctaButtonText: "Start Your Free Trial",

@@ -96,8 +96,8 @@ export const LandingPagePreview: React.FC<LandingPagePreviewProps> = ({
         key={block.id}
         className={`relative transition-all rounded cursor-pointer group ${
           isSelected
-            ? "ring-2 ring-valasys-orange shadow-lg"
-            : "hover:shadow-md"
+            ? "ring-2 ring-valasys-orange"
+            : ""
         }`}
         onClick={() => onSelectBlock(block.id)}
       >
@@ -170,7 +170,7 @@ export const LandingPagePreview: React.FC<LandingPagePreviewProps> = ({
   };
 
   return (
-    <div className="w-full bg-white rounded-lg shadow-md overflow-hidden flex flex-col gap-4 p-4">
+    <div className="w-full bg-white rounded-lg overflow-hidden flex flex-col gap-4 p-4">
       {page.blocks.map((block, index) => renderBlock(block, index))}
     </div>
   );

@@ -331,20 +331,82 @@ export const LandingPageSettingsPanel: React.FC<
 
       <div>
         <Label className="text-sm font-medium">Width</Label>
-        <Input
-          value={localProps.width || "100%"}
-          onChange={(e) => updateProperty("width", e.target.value)}
-          placeholder="100% or 1200px"
-        />
+        <div className="flex gap-2">
+          <Input
+            type="text"
+            value={String(localProps.width || "100%").replace(/[^0-9]/g, "")}
+            onChange={(e) => {
+              const unit = String(localProps.width || "100%").includes("%") ? "%" : "px";
+              const inputValue = e.target.value;
+
+              // Only accept numeric input
+              const numericOnly = inputValue.replace(/[^0-9]/g, "");
+
+              if (numericOnly === "") {
+                return; // Don't save empty values
+              }
+
+              const num = parseInt(numericOnly, 10);
+
+              // For percentage: only allow up to 100
+              if (unit === "%") {
+                if (num > 100) {
+                  return;
+                }
+              }
+
+              updateProperty("width", `${num}${unit}`);
+            }}
+            placeholder="100"
+            className="flex-1"
+          />
+          <select
+            value={String(localProps.width || "100%").includes("%") ? "%" : "px"}
+            onChange={(e) => {
+              const currentNum = parseInt(String(localProps.width || "100").replace(/[^0-9]/g, ""), 10) || 100;
+              const unit = e.target.value;
+
+              // When switching TO percentage, cap at 100
+              if (unit === "%") {
+                const cappedNum = Math.min(currentNum, 100);
+                updateProperty("width", `${cappedNum}${unit}`);
+              } else {
+                updateProperty("width", `${currentNum}${unit}`);
+              }
+            }}
+            className="px-3 py-2 border border-input rounded-md bg-background text-sm"
+          >
+            <option value="%">%</option>
+            <option value="px">px</option>
+          </select>
+        </div>
       </div>
 
       <div>
         <Label className="text-sm font-medium">Min Height</Label>
-        <Input
-          value={localProps.minHeight || "500px"}
-          onChange={(e) => updateProperty("minHeight", e.target.value)}
-          placeholder="500px"
-        />
+        <div className="flex gap-2">
+          <Input
+            type="text"
+            value={String(localProps.minHeight || "500px").replace(/[^0-9]/g, "")}
+            onChange={(e) => {
+              const inputValue = e.target.value;
+
+              // Only accept numeric input
+              const numericOnly = inputValue.replace(/[^0-9]/g, "");
+
+              if (numericOnly === "") {
+                return; // Don't save empty values
+              }
+
+              updateProperty("minHeight", `${numericOnly}px`);
+            }}
+            placeholder="500"
+            className="flex-1"
+          />
+          <div className="px-3 py-2 border border-input rounded-md bg-background text-sm flex items-center text-gray-500">
+            px
+          </div>
+        </div>
       </div>
 
       <div>
@@ -372,6 +434,92 @@ export const LandingPageSettingsPanel: React.FC<
             className="flex-1"
           />
         </div>
+      </div>
+
+      <div>
+        <Label className="text-sm font-medium">Headline Text Color</Label>
+        <div className="flex gap-2">
+          <Input
+            type="color"
+            value={localProps.headlineColor || "#1f2937"}
+            onChange={(e) => updateProperty("headlineColor", e.target.value)}
+            className="w-12 h-10 p-1 cursor-pointer"
+          />
+          <Input
+            value={localProps.headlineColor || "#1f2937"}
+            onChange={(e) => updateProperty("headlineColor", e.target.value)}
+            placeholder="#1f2937"
+            className="flex-1"
+          />
+        </div>
+      </div>
+
+      <div>
+        <Label className="text-sm font-medium">Subheading Text Color</Label>
+        <div className="flex gap-2">
+          <Input
+            type="color"
+            value={localProps.subheadingColor || "#4b5563"}
+            onChange={(e) => updateProperty("subheadingColor", e.target.value)}
+            className="w-12 h-10 p-1 cursor-pointer"
+          />
+          <Input
+            value={localProps.subheadingColor || "#4b5563"}
+            onChange={(e) => updateProperty("subheadingColor", e.target.value)}
+            placeholder="#4b5563"
+            className="flex-1"
+          />
+        </div>
+      </div>
+
+      <div>
+        <Label className="text-sm font-medium">Button Text Color</Label>
+        <div className="flex gap-2">
+          <Input
+            type="color"
+            value={localProps.ctaButtonTextColor || "#ffffff"}
+            onChange={(e) => updateProperty("ctaButtonTextColor", e.target.value)}
+            className="w-12 h-10 p-1 cursor-pointer"
+          />
+          <Input
+            value={localProps.ctaButtonTextColor || "#ffffff"}
+            onChange={(e) => updateProperty("ctaButtonTextColor", e.target.value)}
+            placeholder="#ffffff"
+            className="flex-1"
+          />
+        </div>
+      </div>
+
+      <div>
+        <Label className="text-sm font-medium">Background Image URL</Label>
+        <Input
+          value={localProps.backgroundImage || ""}
+          onChange={(e) => updateProperty("backgroundImage", e.target.value)}
+          placeholder="https://example.com/image.jpg"
+        />
+        {localProps.backgroundImage && (
+          <div className="mt-2 text-xs text-gray-600">
+            <div
+              className="w-full h-20 rounded border border-gray-300 bg-cover bg-center mt-1"
+              style={{ backgroundImage: `url(${localProps.backgroundImage})` }}
+            />
+          </div>
+        )}
+      </div>
+
+      <div>
+        <Label className="text-sm font-medium">Overlay Opacity (0-100)</Label>
+        <Input
+          type="number"
+          min="0"
+          max="100"
+          value={localProps.overlayOpacity || 0}
+          onChange={(e) => updateProperty("overlayOpacity", parseInt(e.target.value))}
+          placeholder="0"
+        />
+        <p className="text-xs text-gray-500 mt-1">
+          Use overlay to make text more readable over the background image
+        </p>
       </div>
     </div>
   );
