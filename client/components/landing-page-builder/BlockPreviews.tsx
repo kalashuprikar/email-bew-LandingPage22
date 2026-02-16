@@ -86,7 +86,7 @@ export const HeaderBlockPreview: React.FC<BlockPreviewProps> = ({
         </div>
 
         {/* Desktop Navigation (hidden on mobile) */}
-        <div className="hidden md:flex gap-4 text-sm text-gray-600 items-center">
+        <div className="hidden md:flex preview-desktop-only gap-4 text-sm text-gray-600 items-center">
           {props.navigationLinks?.map((link: any, i: number) => (
             <div
               key={i}
@@ -115,7 +115,7 @@ export const HeaderBlockPreview: React.FC<BlockPreviewProps> = ({
         </div>
 
         {/* Mobile Hamburger Menu (visible only on mobile) */}
-        <div className="md:hidden flex items-center gap-2">
+        <div className="md:hidden preview-mobile-only flex items-center gap-2">
           <button className="px-3 py-2 bg-valasys-orange text-white text-xs font-medium rounded hover:bg-orange-600 transition-colors whitespace-nowrap">
             {props.ctaButtonText}
           </button>
