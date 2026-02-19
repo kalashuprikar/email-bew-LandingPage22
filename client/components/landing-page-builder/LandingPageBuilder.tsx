@@ -19,7 +19,6 @@ import {
 } from "./utils";
 import { DraggableLandingPagePreview } from "./DraggableLandingPagePreview";
 import { BlocksPanel } from "./BlocksPanel";
-import { SectionsPanel } from "./SectionsPanel";
 import { LandingPageSettingsPanel } from "./LandingPageSettingsPanel";
 import { LandingPagePreviewMode } from "./LandingPagePreviewMode";
 
@@ -39,7 +38,6 @@ export const LandingPageBuilder: React.FC<LandingPageBuilderProps> = ({
   const [selectedLinkIndex, setSelectedLinkIndex] = useState<number | null>(null);
   const [selectedLinkType, setSelectedLinkType] = useState<"navigation" | "quick" | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [isSectionsPanelOpen, setIsSectionsPanelOpen] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
 
   useEffect(() => {
@@ -245,21 +243,8 @@ export const LandingPageBuilder: React.FC<LandingPageBuilderProps> = ({
             Back
           </Button>
         </div>
-        <BlocksPanel
-          onAddBlock={handleAddBlock}
-          onOpenSectionsPanel={() => setIsSectionsPanelOpen(true)}
-        />
+        <BlocksPanel onAddBlock={handleAddBlock} />
       </div>
-
-      {/* Middle - Sections Panel (conditional) */}
-      {isSectionsPanelOpen && (
-        <div className="w-80 bg-white border-r border-gray-200 overflow-hidden flex flex-col">
-          <SectionsPanel
-            onSelectTemplate={handleSelectTemplate}
-            onBack={() => setIsSectionsPanelOpen(false)}
-          />
-        </div>
-      )}
 
       {/* Center - Main Editor Area */}
       <div className="flex-1 flex flex-col">
