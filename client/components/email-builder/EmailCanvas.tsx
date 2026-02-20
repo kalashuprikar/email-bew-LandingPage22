@@ -118,12 +118,8 @@ export const EmailCanvas: React.FC<EmailCanvasProps> = ({
         {/* Blocks Canvas */}
         <div
           ref={drop}
-          style={{
-            backgroundColor: template.backgroundColor,
-            padding: `${template.padding}px`,
-          }}
           className={cn(
-            "bg-white border border-t-0 border-gray-200 rounded-b-lg shadow-sm min-h-96 transition-all",
+            "bg-gray-50 border border-t-0 border-gray-200 rounded-b-lg shadow-sm min-h-96 transition-all p-4",
             isOver && "ring-2 ring-valasys-orange bg-orange-50",
           )}
           onClick={(e) => {
@@ -133,7 +129,14 @@ export const EmailCanvas: React.FC<EmailCanvasProps> = ({
             }
           }}
         >
-          {template.blocks.length === 0 ? (
+          <div
+            style={{
+              backgroundColor: template.backgroundColor,
+              padding: `${template.padding}px`,
+            }}
+            className="bg-white border border-gray-200 rounded-lg shadow-sm"
+          >
+            {template.blocks.length === 0 ? (
             <div className="flex items-center justify-center py-16">
               <div className="w-full max-w-md">
                 <DropZone position={0} onBlockDrop={onAddBlock} isEmpty={true} />
@@ -338,6 +341,7 @@ export const EmailCanvas: React.FC<EmailCanvasProps> = ({
               })}
             </div>
           )}
+          </div>
         </div>
       </div>
     </div>
