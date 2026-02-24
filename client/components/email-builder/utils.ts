@@ -1495,7 +1495,7 @@ export function renderTemplateToHTML(template: EmailTemplate): string {
   </style>
 </head>
 <body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: ${docBgColor};">
-  <div style="max-width: 600px; margin: 0 auto; background-color: ${template.backgroundColor}; border-radius: 4px; padding: ${template.padding}px; box-sizing: border-box; overflow: hidden;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: ${template.backgroundColor}; border-radius: 4px; box-sizing: border-box; overflow: hidden;">
     ${bodyContent}
   </div>
 </body>
