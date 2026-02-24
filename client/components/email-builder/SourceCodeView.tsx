@@ -163,7 +163,7 @@ ${htmlContent.substring(htmlContent.indexOf('<div style="max-width:'), htmlConte
                       className="py-2.5"
                     >
                       <Download className="w-4 h-4 mr-3" />
-                      Download Pure HTML
+                      Download HTML
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
