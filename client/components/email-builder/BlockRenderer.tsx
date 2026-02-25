@@ -27,12 +27,10 @@ import { PromoBlockComponent } from "./blocks/PromoBlockComponent";
 interface BlockRendererProps {
   block: ContentBlock;
   isSelected: boolean;
-  selectedSubElementId?: string | null;
   isEditing?: boolean;
   selectedFooterElement?: string | null;
   onBlockUpdate: (block: ContentBlock) => void;
   onBlockSelect?: (blockId: string) => void;
-  onSubElementSelect?: (id: string | null) => void;
   onEditingBlockChange?: (id: string | null) => void;
   onFooterElementSelect?: (element: string | null) => void;
   onAddBlock?: (block: ContentBlock, position: number) => void;
@@ -44,12 +42,10 @@ interface BlockRendererProps {
 export const BlockRenderer: React.FC<BlockRendererProps> = ({
   block,
   isSelected,
-  selectedSubElementId,
   isEditing,
   selectedFooterElement,
   onBlockUpdate,
   onBlockSelect,
-  onSubElementSelect,
   onEditingBlockChange,
   onFooterElementSelect,
   onAddBlock,
@@ -246,9 +242,7 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({
           <CenteredImageCardBlockComponent
             block={block as any}
             isSelected={isSelected}
-            selectedSubElementId={selectedSubElementId}
             onBlockUpdate={(updatedBlock) => onBlockUpdate(updatedBlock)}
-            onSubElementSelect={onSubElementSelect}
             onBlockSelect={onBlockSelect}
             blockIndex={blockIndex}
             onDuplicate={onDuplicate}
@@ -262,9 +256,7 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({
           <SplitImageCardBlockComponent
             block={block as any}
             isSelected={isSelected}
-            selectedSubElementId={selectedSubElementId}
             onBlockUpdate={(updatedBlock) => onBlockUpdate(updatedBlock)}
-            onSubElementSelect={onSubElementSelect}
             onBlockSelect={onBlockSelect}
             blockIndex={blockIndex}
             onDuplicate={onDuplicate}
