@@ -495,6 +495,130 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     setMarginLeft(getEffectiveMargin("left"));
   }, [block?.id, selectedSubElementId]);
 
+  const handlePaddingChange = (
+    value: number,
+    side?: "top" | "right" | "bottom" | "left",
+  ) => {
+    if (!block || !("padding" in block)) return;
+
+    if (selectedSubElement && selectedSubElementId) {
+      // Update sub-element padding
+      const styleUpdate: any = {};
+      if (groupPaddingSides && !side) {
+        styleUpdate.paddingTop = value;
+        styleUpdate.paddingRight = value;
+        styleUpdate.paddingBottom = value;
+        styleUpdate.paddingLeft = value;
+        styleUpdate.padding = value;
+      } else if (side) {
+        const sidePropertyMap = {
+          top: "paddingTop",
+          right: "paddingRight",
+          bottom: "paddingBottom",
+          left: "paddingLeft",
+        };
+        styleUpdate[sidePropertyMap[side]] = value;
+      }
+
+      setPaddingTop(styleUpdate.paddingTop ?? paddingTop);
+      setPaddingRight(styleUpdate.paddingRight ?? paddingRight);
+      setPaddingBottom(styleUpdate.paddingBottom ?? paddingBottom);
+      setPaddingLeft(styleUpdate.paddingLeft ?? paddingLeft);
+      handleSubElementStyleUpdate(styleUpdate);
+    } else {
+      // Update block padding
+      if (groupPaddingSides && !side) {
+        setPaddingTop(value);
+        setPaddingRight(value);
+        setPaddingBottom(value);
+        setPaddingLeft(value);
+        onBlockUpdate({ ...block, padding: value, paddingTop: value, paddingRight: value, paddingBottom: value, paddingLeft: value });
+      } else if (side) {
+        const sideStateMap = {
+          top: () => setPaddingTop(value),
+          right: () => setPaddingRight(value),
+          bottom: () => setPaddingBottom(value),
+          left: () => setPaddingLeft(value),
+        };
+        sideStateMap[side]();
+
+        const sidePropertyMap = {
+          top: "paddingTop",
+          right: "paddingRight",
+          bottom: "paddingBottom",
+          left: "paddingLeft",
+        };
+        const updatedBlock = {
+          ...block,
+          [sidePropertyMap[side]]: value,
+        };
+        onBlockUpdate(updatedBlock);
+      }
+    }
+  };
+
+  const handleMarginChange = (
+    value: number,
+    side?: "top" | "right" | "bottom" | "left",
+  ) => {
+    if (!block || !("margin" in block)) return;
+
+    if (selectedSubElement && selectedSubElementId) {
+      // Update sub-element margin
+      const styleUpdate: any = {};
+      if (groupMarginSides && !side) {
+        styleUpdate.marginTop = value;
+        styleUpdate.marginRight = value;
+        styleUpdate.marginBottom = value;
+        styleUpdate.marginLeft = value;
+        styleUpdate.margin = value;
+      } else if (side) {
+        const sidePropertyMap = {
+          top: "marginTop",
+          right: "marginRight",
+          bottom: "marginBottom",
+          left: "marginLeft",
+        };
+        styleUpdate[sidePropertyMap[side]] = value;
+      }
+
+      setMarginTop(styleUpdate.marginTop ?? marginTop);
+      setMarginRight(styleUpdate.marginRight ?? marginRight);
+      setMarginBottom(styleUpdate.marginBottom ?? marginBottom);
+      setMarginLeft(styleUpdate.marginLeft ?? marginLeft);
+      handleSubElementStyleUpdate(styleUpdate);
+    } else {
+      // Update block margin
+      if (groupMarginSides && !side) {
+        setMarginTop(value);
+        setMarginRight(value);
+        setMarginBottom(value);
+        setMarginLeft(value);
+        onBlockUpdate({ ...block, margin: value, marginTop: value, marginRight: value, marginBottom: value, marginLeft: value });
+      } else if (side) {
+        const sideStateMap = {
+          top: () => setMarginTop(value),
+          right: () => setMarginRight(value),
+          bottom: () => setMarginBottom(value),
+          left: () => setMarginLeft(value),
+        };
+        sideStateMap[side]();
+
+        const sidePropertyMap = {
+          top: "marginTop",
+          right: "marginRight",
+          bottom: "marginBottom",
+          left: "marginLeft",
+        };
+        const updatedBlock = {
+          ...block,
+          [sidePropertyMap[side]]: value,
+        };
+        onBlockUpdate(updatedBlock);
+      }
+    }
+  };
+
   const handleSubElementStyleUpdate = (styleUpdate: any) => {
     if (!block || !selectedSubElementId) return;
 
@@ -7024,6 +7148,211 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
           </p>
         </div>
         {renderSettings()}
+
+        {/* Old-Style Spacing Section */}
+        {block && ("padding" in block || "margin" in block) && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-xs font-bold text-gray-900">Spacing</h4>
+            </div>
+            <div className="space-y-3">
+              {/* Padding */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-xs text-gray-700">Padding</Label>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="groupPadding"
+                      checked={groupPaddingSides}
+                      onCheckedChange={(checked) =>
+                        setGroupPaddingSides(checked as boolean)
+                      }
+                    />
+                    <Label
+                      htmlFor="groupPadding"
+                      className="text-xs text-gray-600 cursor-pointer"
+                    >
+                      Group sides
+                    </Label>
+                  </div>
+                </div>
+                {groupPaddingSides ? (
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      min="0"
+                      value={paddingTop}
+                      onChange={(e) =>
+                        handlePaddingChange(parseInt(e.target.value) || 0)
+                      }
+                      className="flex-1 focus:ring-valasys-orange focus:ring-2"
+                    />
+                    <span className="px-2 py-1 text-sm text-gray-600">
+                      px
+                    </span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-gray-600 w-6 text-center">
+                        ↑
+                      </span>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={paddingTop}
+                        onChange={(e) =>
+                          handlePaddingChange(parseInt(e.target.value) || 0, "top")
+                        }
+                        className="flex-1 focus:ring-valasys-orange focus:ring-2"
+                      />
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-gray-600 w-6 text-center">
+                        →
+                      </span>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={paddingRight}
+                        onChange={(e) =>
+                          handlePaddingChange(parseInt(e.target.value) || 0, "right")
+                        }
+                        className="flex-1 focus:ring-valasys-orange focus:ring-2"
+                      />
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-gray-600 w-6 text-center">
+                        ↓
+                      </span>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={paddingBottom}
+                        onChange={(e) =>
+                          handlePaddingChange(parseInt(e.target.value) || 0, "bottom")
+                        }
+                        className="flex-1 focus:ring-valasys-orange focus:ring-2"
+                      />
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-gray-600 w-6 text-center">
+                        ←
+                      </span>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={paddingLeft}
+                        onChange={(e) =>
+                          handlePaddingChange(parseInt(e.target.value) || 0, "left")
+                        }
+                        className="flex-1 focus:ring-valasys-orange focus:ring-2"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Margin */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-xs text-gray-700">Margin</Label>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="groupMargin"
+                      checked={groupMarginSides}
+                      onCheckedChange={(checked) =>
+                        setGroupMarginSides(checked as boolean)
+                      }
+                    />
+                    <Label
+                      htmlFor="groupMargin"
+                      className="text-xs text-gray-600 cursor-pointer"
+                    >
+                      Group sides
+                    </Label>
+                  </div>
+                </div>
+                {groupMarginSides ? (
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      min="0"
+                      value={marginTop}
+                      onChange={(e) =>
+                        handleMarginChange(parseInt(e.target.value) || 0)
+                      }
+                      className="flex-1 focus:ring-valasys-orange focus:ring-2"
+                    />
+                    <span className="px-2 py-1 text-sm text-gray-600">
+                      px
+                    </span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-gray-600 w-6 text-center">
+                        ↑
+                      </span>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={marginTop}
+                        onChange={(e) =>
+                          handleMarginChange(parseInt(e.target.value) || 0, "top")
+                        }
+                        className="flex-1 focus:ring-valasys-orange focus:ring-2"
+                      />
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-gray-600 w-6 text-center">
+                        →
+                      </span>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={marginRight}
+                        onChange={(e) =>
+                          handleMarginChange(parseInt(e.target.value) || 0, "right")
+                        }
+                        className="flex-1 focus:ring-valasys-orange focus:ring-2"
+                      />
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-gray-600 w-6 text-center">
+                        ↓
+                      </span>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={marginBottom}
+                        onChange={(e) =>
+                          handleMarginChange(parseInt(e.target.value) || 0, "bottom")
+                        }
+                        className="flex-1 focus:ring-valasys-orange focus:ring-2"
+                      />
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-gray-600 w-6 text-center">
+                        ←
+                      </span>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={marginLeft}
+                        onChange={(e) =>
+                          handleMarginChange(parseInt(e.target.value) || 0, "left")
+                        }
+                        className="flex-1 focus:ring-valasys-orange focus:ring-2"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         <UniversalStyleSettings
           block={selectedSubElement ? { ...selectedSubElement, ...(selectedSubElement.styles || {}) } : block}
           onBlockUpdate={selectedSubElement ? handleSubElementStyleUpdate : onBlockUpdate}
