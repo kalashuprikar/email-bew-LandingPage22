@@ -496,7 +496,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   }, [block?.id, selectedSubElementId]);
 
   const handleSubElementStyleUpdate = (styleUpdate: any) => {
-    if (!block || !selectedSubElementId || !selectedSubElement) return;
+    if (!block || !selectedSubElementId) return;
 
     let updatedBlock = { ...block } as any;
 
