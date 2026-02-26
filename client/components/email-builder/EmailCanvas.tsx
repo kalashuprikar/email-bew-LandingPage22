@@ -64,10 +64,12 @@ export const EmailCanvas: React.FC<EmailCanvasProps> = ({
       const lastBlock = template.blocks[template.blocks.length - 1];
       const blockElement = blockRefsMap.current.get(lastBlock.id);
 
-      if (blockElement) {
-        // Use requestAnimationFrame to ensure DOM is updated before scrolling
+      if (blockElement && scrollContainerRef.current) {
+        // Use scrollTop instead of scrollIntoView to prevent window scrolling
+        const container = scrollContainerRef.current;
+        const offsetTop = blockElement.offsetTop;
         requestAnimationFrame(() => {
-          blockElement.scrollIntoView({ behavior: "smooth", block: "start" });
+          container.scrollTo({ top: offsetTop, behavior: "smooth" });
         });
       }
     }
